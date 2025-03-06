@@ -22,22 +22,22 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories
         $ids        = explode(',', $row->getData($this->getColumn()->getIndex()));
         $minLevel   = intval($this->getColumn()->getAscentLimit());
         $result     = array();
-        
+
         if (empty($ids)) {
             return $result;
         }
-        
+
         if ($tree = $this->getColumn()->getCategoryTree()) {
             foreach ($ids as $categoryId) {
                 $subResult = array();
-                
+
                 if ($node = $tree->getNodeById($categoryId)) {
                     $subResult[] = ($displayIds ? $categoryId : $node->getName());
-                    
+
                     while (($node = $node->getParent()) && ($node->getLevel() >= $minLevel)) {
                         $subResult[] = ($displayIds ? $node->getId() : $node->getName());
                     }
-                    
+
                     $result[] = array_reverse($subResult);
                 }
             }
@@ -50,17 +50,19 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories
         } else {
             $result = array_map(function ($v) { return array($v); }, $ids);
         }
-        
+
         return $result;
     }
-    
+
     protected function _renderRow($row, $levelSep, $resultSep)
     {
         $result = $this->_getRowResult($row);
-        array_walk($result, function (&$v, $k, $s) { $v = implode($v, $s); }, $levelSep);
+        array_walk($result, function (&$v, $k) use ($levelSep) {
+            $v = implode($levelSep, (array)$v);
+        });
         return implode($resultSep, $result);
     }
-    
+
     public function render(Varien_Object $row)
     {
         return $this->_renderRow(
@@ -69,7 +71,7 @@ class BL_CustomGrid_Block_Widget_Grid_Column_Renderer_Product_Categories
             $this->htmlEscape($this->getColumn()->getResultSeparator())
         );
     }
-    
+
     public function renderExport(Varien_Object $row)
     {
         return $this->_renderRow(
